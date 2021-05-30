@@ -166,7 +166,12 @@ namespace SeminarManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var seminar = await _context.Seminars.FindAsync(id);
+            var seminar = await _context.Seminars.Include(s => s.Attendees).FirstOrDefaultAsync(s => s.Seminar_Id == id);
+            if (seminar.Attendees.Any())
+            {
+                ViewBag.Error = "This seminar has active attendees. You are not allowed to delete.";
+                return View();
+            }
             _context.Seminars.Remove(seminar);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
